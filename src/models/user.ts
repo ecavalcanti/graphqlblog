@@ -1,4 +1,4 @@
-import { Column, Model, Table, CreatedAt, UpdatedAt, BeforeCreate, AllowNull, PrimaryKey, AutoIncrement, NotEmpty, DataType } from 'sequelize-typescript'
+import { Column, Model, Table, CreatedAt, UpdatedAt, BeforeCreate, AllowNull, PrimaryKey, AutoIncrement, NotEmpty, DataType, BeforeUpdate } from 'sequelize-typescript'
 import { genSalt, hash, compare } from 'bcryptjs'
 
 @Table({ tableName: 'users' })
@@ -40,6 +40,14 @@ export default class User extends Model<User> {
   static async generatePassword(user: User) {
     const salt = await genSalt()
     user.password = await hash(user.password, salt)
+  }
+
+  @BeforeUpdate
+  static async updatePassword(user: User) {
+    if (user.changed('password')) {
+      const salt = await genSalt()
+      user.password = await hash(user.password, salt)
+    }
   }
 
   async isPassword(encodedPassword: string, password: string): Promise<boolean> {
